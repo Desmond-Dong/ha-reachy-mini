@@ -39,13 +39,26 @@ jobs:
           echo "Build completed successfully"
           ls -la dist/
 
+      - name: Copy assets to dist
+        run: |
+          # 复制 assets 文件夹到 dist 目录
+          cp -r assets dist/
+          # 创建 lib 目录并复制 urdf-loader
+          mkdir -p dist/lib
+          cp node_modules/urdf-loader/src/URDFLoader.js dist/lib/urdf-loader.js
+          echo "Assets and lib copied to dist/"
+          ls -la dist/
+          ls -la dist/assets/ || true
+          ls -la dist/lib/ || true
+
       - name: Create release package
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           mkdir -p release/reachy-mini-3d-card
           cp dist/reachy-mini-3d-card.js release/reachy-mini-3d-card/
           cp dist/reachy-mini-3d-card.js.map release/reachy-mini-3d-card/
-          cp -r assets release/reachy-mini-3d-card/
+          cp -r dist/assets release/reachy-mini-3d-card/
+          cp -r dist/lib release/reachy-mini-3d-card/
           cp hacs.json release/reachy-mini-3d-card/
           cp README.md release/reachy-mini-3d-card/
           cp LICENSE release/reachy-mini-3d-card/ 2>/dev/null || true
@@ -63,9 +76,11 @@ jobs:
           path: |
             dist/reachy-mini-3d-card.js
             dist/reachy-mini-3d-card.js.map
+            dist/assets/
+            dist/lib/
           retention-days: 30
 
-      - name: Commit built file to repository
+      - name: Commit built files to repository
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
