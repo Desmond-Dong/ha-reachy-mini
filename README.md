@@ -5,9 +5,11 @@
 [![HACS](https://img.shields.io/badge/HACS-Default-orange.svg)](https://hacs.xyz/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-**🤖 Real-time 3D visualization with visual configuration**
+**Real-time 3D visualization with visual configuration**
 
 No YAML editing required! Everything configurable through the UI.
+
+![Reachy Mini 3D Card Preview](https://raw.githubusercontent.com/Desmond-Dong/ha-reachy-mini-card/main/assets/screenshot.svg)
 
 </div>
 
