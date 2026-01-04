@@ -12,26 +12,47 @@ window.customCards.push({
   documentationURL: 'https://github.com/Desmond-Dong/ha-reachy-mini-card'
 });
 
+// 确保 THREE 全局对象可用
+if (!window.THREE) {
+  console.error('THREE.js not loaded yet');
+}
+
 (async () => {
-  const MODULE_URL = new URL(import.meta.url);
-  const BASE_URL = MODULE_URL.origin + MODULE_URL.pathname.replace(/\/[^/]*$/, '/');
+  try {
+    // 从当前脚本位置确定基础路径
+    const getCurrentScriptBase = () => {
+      const scripts = document.getElementsByTagName('script');
+      const currentScript = scripts[scripts.length - 1];
+      const src = currentScript?.src || '';
+      if (src) {
+        return src.substring(0, src.lastIndexOf('/') + 1);
+      }
+      // 降级方案：假设在 HACS 目录
+      return '/hacsfiles/reachy-mini-3d-card/';
+    };
 
-  // 从 CDN 或本地加载 Three.js
-  await loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js');
-  await loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js');
-  await loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/STLLoader.js');
+    const BASE_URL = getCurrentScriptBase();
+    console.log('Card base URL:', BASE_URL);
 
-  // LitElement 和 Home Assistant 帮助函数
-  const { LitElement, html, css } = await loadLit();
-
-  class ReachyMini3DCard extends LitElement {
-    static get properties() {
-      return {
-        hass: Object,
-        config: Object,
-        _editing: { type: Boolean, state: true }
-      };
+    // 从 CDN 或本地加载 Three.js
+    if (!window.THREE) {
+      await loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js');
     }
+    await loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/STLLoader.js');
+
+    // LitElement 和 Home Assistant 帮助函数
+    const { LitElement, html, css } = await loadLit();
+
+    class ReachyMini3DCard extends LitElement {
+      static get properties() {
+        return {
+          hass: Object,
+          config: Object,
+          _editing: { type: Boolean, state: true },
+          _loaded: { type: Boolean, state: true }
+        };
+      }
 
     static get styles() {
       return css`
@@ -266,9 +287,21 @@ window.customCards.push({
       return Math.ceil(this.config.height / 50);
     }
 
+    constructor() {
+      super();
+      this._loaded = false;
+      this._editing = false;
+    }
+
     connectedCallback() {
       super.connectedCallback();
-      this.initThreeJS();
+      // 延迟初始化,确保 DOM 已准备好
+      requestAnimationFrame(() => {
+        this.initThreeJS().catch(err => {
+          console.error('Failed to initialize Three.js:', err);
+          this._loaded = true;
+        });
+      });
     }
 
     disconnectedCallback() {
@@ -277,58 +310,72 @@ window.customCards.push({
     }
 
     async initThreeJS() {
-      const container = this.shadowRoot.getElementById('canvas-container');
-      if (!container) return;
+      const container = this.shadowRoot?.getElementById('canvas-container');
+      if (!container) {
+        console.warn('Canvas container not found, retrying...');
+        // 如果容器还没准备好,稍后重试
+        await new Promise(resolve => setTimeout(resolve, 100));
+        return this.initThreeJS();
+      }
 
-      // 场景
-      this.scene = new THREE.Scene();
-      this.scene.background = new THREE.Color(0xf0f0f0);
+      try {
+        // 场景
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0xf0f0f0);
 
-      // 相机
-      const width = container.clientWidth;
-      const height = this.config.height || 400;
-      this.camera = new THREE.PerspectiveCamera(50, width / height, 0.01, 1000);
-      this.camera.position.set(0.3, 0.3, 0.5);
+        // 相机
+        const width = container.clientWidth;
+        const height = this.config?.height || 400;
+        this.camera = new THREE.PerspectiveCamera(50, width / height, 0.01, 1000);
+        this.camera.position.set(0.3, 0.3, 0.5);
 
-      // 渲染器
-      this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      this.renderer.setSize(width, height);
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      this.renderer.shadowMap.enabled = true;
-      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      container.appendChild(this.renderer.domElement);
+        // 渲染器
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer.setSize(width, height);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(this.renderer.domElement);
 
-      // 控制器
-      this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-      this.controls.enableDamping = true;
-      this.controls.dampingFactor = 0.05;
-      this.controls.minDistance = 0.2;
-      this.controls.maxDistance = 1;
+        // 控制器
+        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.05;
+        this.controls.minDistance = 0.2;
+        this.controls.maxDistance = 1;
 
-      // 灯光
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-      this.scene.add(ambientLight);
+        // 灯光
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.scene.add(ambientLight);
 
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      directionalLight.position.set(1, 1, 1);
-      directionalLight.castShadow = true;
-      this.scene.add(directionalLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        directionalLight.castShadow = true;
+        this.scene.add(directionalLight);
 
-      // 地面网格
-      const gridHelper = new THREE.GridHelper(0.4, 20, 0x888888, 0xcccccc);
-      this.scene.add(gridHelper);
+        // 地面网格
+        const gridHelper = new THREE.GridHelper(0.4, 20, 0x888888, 0xcccccc);
+        this.scene.add(gridHelper);
 
-      // 加载机器人模型
-      await this.loadRobotModel();
+        // 加载机器人模型
+        await this.loadRobotModel();
 
-      // 开始动画循环
-      this.animate();
+        // 标记为已加载
+        this._loaded = true;
 
-      // 监听窗口大小变化
-      window.addEventListener('resize', this.onWindowResize.bind(this));
+        // 开始动画循环
+        this.animate();
 
-      // 启动状态更新
-      this.startStateUpdate();
+        // 监听窗口大小变化
+        window.addEventListener('resize', this.onWindowResize.bind(this));
+
+        // 启动状态更新
+        this.startStateUpdate();
+      } catch (error) {
+        console.error('Error initializing Three.js:', error);
+        this._loaded = true;
+        throw error;
+      }
     }
 
     async loadRobotModel() {
@@ -537,19 +584,19 @@ window.customCards.push({
                   <label>Entity Prefix</label>
                   <div class="entity-selector">
                     <input type="text"
-                           .value="${this.config.entity_prefix}"
+                           .value="${this.config?.entity_prefix || ''}"
                            @change="${(e) => this.updateConfig({ entity_prefix: e.target.value })}">
                     <span class="entity-icon">🔗</span>
                   </div>
                 </div>
 
                 <div class="config-item">
-                  <label>Height (${this.config.height}px)</label>
+                  <label>Height (${this.config?.height || 400}px)</label>
                   <input type="range"
                          min="200"
                          max="800"
                          step="50"
-                         .value="${this.config.height}"
+                         .value="${this.config?.height || 400}"
                          @input="${(e) => this.updateConfig({ height: parseInt(e.target.value) })}">
                 </div>
 
@@ -557,19 +604,19 @@ window.customCards.push({
                   <label>Options</label>
                   <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                     <input type="checkbox"
-                           ?checked="${this.config.show_controls}"
+                           ?checked="${this.config?.show_controls !== false}"
                            @change="${(e) => this.updateConfig({ show_controls: e.target.checked })}">
                     Show Controls
                   </label>
                   <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                     <input type="checkbox"
-                           ?checked="${this.config.auto_rotate}"
+                           ?checked="${this.config?.auto_rotate || false}"
                            @change="${(e) => this.updateConfig({ auto_rotate: e.target.checked })}">
                     Auto Rotate
                   </label>
                   <label style="display:flex;align-items:center;gap:8px;">
                     <input type="checkbox"
-                           ?checked="${this.config.xray_mode}"
+                           ?checked="${this.config?.xray_mode || false}"
                            @change="${(e) => this.updateConfig({ xray_mode: e.target.checked })}">
                     X-Ray Mode
                   </label>
@@ -577,9 +624,18 @@ window.customCards.push({
               </div>
             ` : ''}
 
-            <div id="canvas-container" style="height:${this.config.height}px"></div>
+            <div id="canvas-container" style="height:${this.config?.height || 400}px">
+              ${!this._loaded ? html`
+                <div class="loading-overlay">
+                  <div style="text-align:center">
+                    <div style="font-size:24px;margin-bottom:8px">🤖</div>
+                    <div>Loading 3D model...</div>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
 
-            ${this.config.show_controls ? html`
+            ${this.config?.show_controls !== false ? html`
               <div class="controls">
                 <button class="control-btn" @click="${() => this.resetCamera()}" title="Reset View">🎯</button>
                 <button class="control-btn" @click="${() => this.toggleAutoRotate()}" title="Toggle Rotation">🔄</button>
@@ -619,7 +675,12 @@ window.customCards.push({
   // 注册自定义卡片
   customElements.define('reachy-mini-3d-card', ReachyMini3DCard);
 
-  // 辅助函数
+  console.log('Reachy Mini 3D Card registered successfully');
+
+  } catch (error) {
+    console.error('Error initializing Reachy Mini 3D Card:', error);
+  }
+})();
   async function loadScript(url) {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
