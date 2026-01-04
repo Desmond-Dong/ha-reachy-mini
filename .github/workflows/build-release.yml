@@ -5,12 +5,8 @@ on:
     branches: [ main ]
     tags:
       - 'v*'
-    paths:
-      - 'ha/**'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'ha/**'
   workflow_dispatch:
 
 permissions:
@@ -30,25 +26,20 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: ha/package-lock.json
 
       - name: Install dependencies
-        working-directory: ./ha
         run: npm ci
 
       - name: Run linter
-        working-directory: ./ha
         run: npm run lint --if-present
         continue-on-error: true
 
       - name: Build bundle
-        working-directory: ./ha
         run: |
           npm run build
           echo "Build completed successfully"
 
       - name: Create release package
-        working-directory: ./ha
         run: |
           VERSION=$(node -p "require('./package.json').version")
           mkdir -p dist
@@ -83,14 +74,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reachy-mini-3d-card
-          path: ha/dist/
+          path: dist/
           retention-days: 30
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: ha/dist/reachy-mini-3d-card.zip
+          files: dist/reachy-mini-3d-card.zip
           body: |
             ## 🚀 Reachy Mini 3D Card Release
 
@@ -115,7 +106,7 @@ jobs:
 
             ### ✨ What's New
 
-            See [CHANGELOG.md](https://github.com/djhui5710/reachy_mini_ha_voice/blob/main/ha/CHANGELOG.md) for details.
+            See [CHANGELOG.md](https://github.com/Desmond-Dong/ha-reachy-mini-card/blob/main/CHANGELOG.md) for details.
 
             ### 📋 Checksums
 
@@ -145,7 +136,7 @@ jobs:
             </details>
 
             ---
-            **Full Changelog**: https://github.com/djhui5710/reachy_mini_ha_voice/compare/${{ github.ref_name }}...HEAD
+            **Full Changelog**: https://github.com/Desmond-Dong/ha-reachy-mini-card/compare/${{ github.ref_name }}...HEAD
           draft: false
           prerelease: false
         env:
@@ -153,7 +144,7 @@ jobs:
 
       - name: Output checksums
         if: startsWith(github.ref, 'refs/tags/')
-        working-directory: ./ha/dist
+        working-directory: ./dist
         run: |
           echo "## 📋 Checksums" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
