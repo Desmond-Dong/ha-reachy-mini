@@ -2,6 +2,16 @@
 // 带有可视化配置编辑器的完整版本
 // 支持 HACS 安装
 
+// 立即注册 customCards（在异步加载之前）
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: 'reachy-mini-3d-card',
+  name: 'Reachy Mini 3D Card',
+  description: 'Real-time 3D visualization of Reachy Mini robot with visual configuration editor',
+  preview: true,
+  documentationURL: 'https://github.com/Desmond-Dong/ha-reachy-mini-card'
+});
+
 (async () => {
   const MODULE_URL = new URL(import.meta.url);
   const BASE_URL = MODULE_URL.origin + MODULE_URL.pathname.replace(/\/[^/]*$/, '/');
@@ -608,16 +618,6 @@
 
   // 注册自定义卡片
   customElements.define('reachy-mini-3d-card', ReachyMini3DCard);
-
-  // 配置编辑器
-  window.customCards = window.customCards || [];
-  window.customCards.push({
-    type: 'reachy-mini-3d-card',
-    name: 'Reachy Mini 3D Card',
-    description: 'Real-time 3D visualization of Reachy Mini robot with visual configuration editor',
-    preview: true,
-    documentationURL: 'https://github.com/djhui5710/reachy_mini_ha_voice'
-  });
 
   // 辅助函数
   async function loadScript(url) {
