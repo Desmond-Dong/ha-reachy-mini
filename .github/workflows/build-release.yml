@@ -85,7 +85,7 @@ This card connects directly to your Reachy Mini daemon - no ESPHome required!
 ### Configuration
 
 type: custom:reachy-mini-3d-card
-daemon_host: localhost    # or your Reachy Mini IP
+daemon_host: localhost
 daemon_port: 3333
 height: 400
 
