@@ -60,6 +60,7 @@ jobs:
           cp -r assets release/
           cp -r lib release/
           cp README.md release/
+          cp hacs.json release/
 
           # 创建 zip 包
           cd release
@@ -85,7 +86,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add reachy-mini-3d-card.js reachy-mini-3d-card.js.map lib/
+          git add reachy-mini-3d-card.js reachy-mini-3d-card.js.map lib/ hacs.json
           git diff --staged --quiet || git commit -m "chore: build [skip ci]"
           git push
 
