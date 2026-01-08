@@ -368,40 +368,56 @@
           return;
         }
 
-        console.log('📦 Loading Three.js from lib/three.js...');
+        console.log('📦 Loading Three.js from lib...');
         
-        // Load Three.js
-        const script1 = document.createElement('script');
-        script1.src = `${basePath}lib/three.js`;
-        script1.type = 'module';
+        // Load three.core.min.js first
+        const script0 = document.createElement('script');
+        script0.src = `${basePath}lib/three.core.min.js`;
+        script0.type = 'module';
         
-        script1.onload = () => {
-          console.log('✅ Three.js loaded');
+        script0.onload = () => {
+          console.log('✅ Three.js core loaded');
           
-          // Load OrbitControls
-          const script2 = document.createElement('script');
-          script2.src = `${basePath}lib/OrbitControls.js`;
-          script2.type = 'module';
+          // Load three.js
+          const script1 = document.createElement('script');
+          script1.src = `${basePath}lib/three.js`;
+          script1.type = 'module';
           
-          script2.onload = () => {
-            console.log('✅ OrbitControls loaded');
-            resolve();
+          script1.onload = () => {
+            console.log('✅ Three.js loaded');
+            
+            // Load OrbitControls
+            const script2 = document.createElement('script');
+            script2.src = `${basePath}lib/OrbitControls.js`;
+            script2.type = 'module';
+            
+            script2.onload = () => {
+              console.log('✅ OrbitControls loaded');
+              resolve();
+            };
+            
+            script2.onerror = () => {
+              console.error('❌ Failed to load OrbitControls');
+              reject(new Error('Failed to load OrbitControls'));
+            };
+            
+            document.head.appendChild(script2);
           };
           
-          script2.onerror = () => {
-            console.error('❌ Failed to load OrbitControls');
-            reject(new Error('Failed to load OrbitControls'));
+          script1.onerror = () => {
+            console.error('❌ Failed to load Three.js');
+            reject(new Error('Failed to load Three.js'));
           };
           
-          document.head.appendChild(script2);
+          document.head.appendChild(script1);
         };
         
-        script1.onerror = () => {
-          console.error('❌ Failed to load Three.js');
-          reject(new Error('Failed to load Three.js'));
+        script0.onerror = () => {
+          console.error('❌ Failed to load Three.js core');
+          reject(new Error('Failed to load Three.js core'));
         };
         
-        document.head.appendChild(script1);
+        document.head.appendChild(script0);
       });
     }
 
