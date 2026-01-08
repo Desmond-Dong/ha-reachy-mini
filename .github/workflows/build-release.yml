@@ -59,7 +59,7 @@ jobs:
           sed -i.bak "s/from 'three'/from '.\/three.core.js'/g" lib/URDFClasses.js
           sed -i.bak "s/from 'three'/from '.\/three.core.js'/g" lib/URDFDragControls.js
           sed -i.bak "s/from 'three'/from '.\/three.core.js'/g" lib/STLLoader.js
-          sed -i.bak "s/import \* as THREE from 'three'/import * as THREE from '.\/three.core.js'/g" lib/urdf-loader.js
+          sed -i.bak "s/from 'three'/from '.\/three.core.js'/g" lib/urdf-loader.js
           sed -i.bak "s|from 'three/examples/jsm/loaders/STLLoader.js'|from './STLLoader.js'|g" lib/urdf-loader.js
           
           # Remove ColladaLoader import (not used)
