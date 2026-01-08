@@ -33,11 +33,11 @@ jobs:
         run: npm run lint --if-present
         continue-on-error: true
 
-      - name: Build V2 bundle (default)
+      - name: Build bundle
         run: |
-          echo "Building V2 (Direct Connection)..."
-          npm run build:v2
-          echo "V2 Build completed successfully"
+          echo "Building Reachy Mini 3D Card..."
+          npm run build
+          echo "Build completed successfully"
           ls -la dist/
 
       - name: Copy assets to dist

@@ -21,18 +21,11 @@
   "author": "djhui5710",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "rollup -c rollup.config.v2.js",
-    "build:v1": "rollup -c rollup.config.v1.js",
-    "build:v2": "rollup -c rollup.config.v2.js",
-    "build:all": "npm run build:v1 && npm run build:v2",
-    "watch": "rollup -c rollup.config.v2.js --watch",
-    "watch:v1": "rollup -c rollup.config.v1.js --watch",
-    "watch:v2": "rollup -c rollup.config.v2.js --watch",
+    "build": "rollup -c",
+    "watch": "rollup -c --watch",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js --fix",
-    "prepack": "npm run build",
-    "release": "npm run build && npm run test:zip",
-    "test:zip": "node scripts/test-zip.js"
+    "prepack": "npm run build"
   },
   "dependencies": {
     "lit": "^3.1.0",
