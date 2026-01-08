@@ -56,16 +56,25 @@ Connects directly to Reachy Mini daemon via WebSocket for ultra-low latency 3D v
 4. Click **Download** → select latest version
 5. Wait for installation to complete
 
-### Step 2: Add to Dashboard
+### Step 2: Refresh Home Assistant
+
+After installation completes:
+
+1. **Refresh your browser** (Ctrl+Shift+R or Cmd+Shift+R) to clear cache
+2. Or reload Home Assistant: **Settings** → **System** → **Reload** → **Reload UI**
+
+### Step 3: Add to Dashboard
 
 Add the card to your Lovelace dashboard:
 
 ```yaml
 type: custom:reachy-mini-3d-card
 daemon_host: localhost
-daemon_port: 3333
+daemon_port: 8000
 height: 400
 ```
+
+**Note:** If you don't see the card in the card picker, try adding it manually by editing the dashboard YAML.
 
 ## ⚙️ Configuration
 
@@ -101,6 +110,40 @@ height: 400
 | `camera_distance` | number | `0.5` | Initial camera distance (0.2 - 1.5) |
 
 ## 🔧 Troubleshooting
+
+### Card Not Showing in Dashboard
+
+If you don't see "Reachy Mini 3D Card" in the card picker:
+
+1. **Refresh the page** (Ctrl+Shift+R or Cmd+Shift+R)
+2. **Check HACS installation**:
+   - Go to **HACS** → **Frontend**
+   - Verify "Reachy Mini 3D Card" is listed
+   - If not, reinstall it
+
+3. **Clear browser cache**:
+   - Open DevTools (F12)
+   - Right-click refresh button → **Empty Cache and Hard Reload**
+
+4. **Check browser console** (F12):
+   - Look for errors related to `reachy-mini-3d-card`
+   - Common errors:
+     - `Failed to load resource` - Check network connection
+     - `customElements.define` error - Refresh the page
+
+5. **Add card manually via YAML**:
+   - Edit your dashboard in YAML mode
+   - Add the card configuration directly:
+   ```yaml
+   type: custom:reachy-mini-3d-card
+   daemon_host: localhost
+   daemon_port: 8000
+   height: 400
+   ```
+
+6. **Check Home Assistant logs**:
+   - Go to **Settings** → **System** → **Logs**
+   - Look for errors related to the card
 
 ### Connection Status Indicator
 
