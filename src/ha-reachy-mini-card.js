@@ -546,26 +546,14 @@
     async loadRobot() {
       const basePath = this.getBasePath();
       
-      // 动态加载 URDFLoader
-      const script = document.createElement('script');
-      script.src = `${basePath}lib/URDFClasses.js`;
-      document.head.appendChild(script);
+      // 动态加载 URDFLoader 相关模块
+      await import(`${basePath}lib/URDFClasses.js`);
+      await import(`${basePath}lib/URDFDragControls.js`);
       
-      await new Promise(resolve => script.onload = resolve);
+      const URDFLoaderModule = await import(`${basePath}lib/urdf-loader.js`);
+      const URDFLoader = URDFLoaderModule.default;
       
-      const script2 = document.createElement('script');
-      script2.src = `${basePath}lib/URDFDragControls.js`;
-      document.head.appendChild(script2);
-      
-      await new Promise(resolve => script2.onload = resolve);
-      
-      const script3 = document.createElement('script');
-      script3.src = `${basePath}lib/urdf-loader.js`;
-      document.head.appendChild(script3);
-      
-      await new Promise(resolve => script3.onload = resolve);
-      
-      const loader = new window.URDFLoader();
+      const loader = new URDFLoader();
       loader.workingPath = `${basePath}assets/`;
       
       this._robot = await loader.load(`${basePath}assets/reachy-mini.urdf`);
