@@ -9,6 +9,8 @@
 
 Connects directly to Reachy Mini daemon via WebSocket for ultra-low latency 3D visualization.
 
+![Reachy Mini 3D Card](https://raw.githubusercontent.com/Desmond-Dong/ha-reachy-mini-card/main/assets/screenshot.svg)
+
 </div>
 
 ## ✨ Features
