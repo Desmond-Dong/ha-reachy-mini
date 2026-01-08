@@ -13,6 +13,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recording/playback of poses
 - Export 3D model as GLTF
 
+## [3.0.3] - 2025-01-08
+
+### Changed
+- 📦 将 Three.js 和 OrbitControls 移到 lib/three 目录
+- ⚡ 卡片文件从 755KB 减小到 16KB
+- 🚀 Three.js 文件可以被浏览器缓存，提升性能
+- 🔧 更新 Three.js 时只需替换文件，无需重新构建
+
+### Technical Details
+- 添加 lib/three/three.js (355KB)
+- 添加 lib/three/OrbitControls.js (38KB)
+- 修改 loadThreeJS() 方法，动态加载 Three.js
+- 恢复 rollup.config.js 的 external: ['three'] 配置
+- 更新 GitHub Actions，自动复制 Three.js 文件
+
+### Benefits
+1. 卡片文件更小，加载更快
+2. Three.js 可被缓存，减少重复下载
+3. 更新 Three.js 更方便
+4. 符合 HACS 最佳实践
+
 ## [3.0.2] - 2025-01-08
 
 ### Fixed
