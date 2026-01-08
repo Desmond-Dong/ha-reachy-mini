@@ -4,6 +4,7 @@ node_modules/
 # Build output
 dist/
 *.js.map
+!ha-reachy-mini-card.js.map
 
 # Reference project
 reachy-mini-desktop-app/
