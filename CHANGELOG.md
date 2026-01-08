@@ -13,6 +13,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recording/playback of poses
 - Export 3D model as GLTF
 
+## [3.0.4] - 2025-01-08
+
+### Changed
+- 📁 将 Three.js 和 OrbitControls 从 lib/three/ 移到 lib/ 根目录
+- 🗂️ 和 URDFLoader 文件在同一级别，结构更清晰
+- 🔄 更新加载路径和 GitHub Actions 复制路径
+
+### File Structure
+```
+lib/
+  - three.js (355KB)
+  - OrbitControls.js (38KB)
+  - urdf-loader.js
+  - URDFClasses.js
+  - URDFDragControls.js
+```
+
+这样更简洁，符合 HACS 项目的常见做法。
+
 ## [3.0.3] - 2025-01-08
 
 ### Changed
