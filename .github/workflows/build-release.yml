@@ -80,6 +80,7 @@ jobs:
           # 复制所有必需文件
           cp ha-reachy-mini-card.js release/
           cp ha-reachy-mini-card.js.gz release/
+          cp ha-reachy-mini-card.js.map release/
           cp -r assets release/
           cp -r lib release/
           cp README.md release/
@@ -121,6 +122,7 @@ jobs:
           files: |
             ha-reachy-mini-card.zip
             ha-reachy-mini-card.js
+            ha-reachy-mini-card.js.map
           body: |
             # 🎉 Reachy Mini 3D Card ${{ github.ref_name }}
 
