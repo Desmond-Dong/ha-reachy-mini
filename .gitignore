@@ -5,7 +5,8 @@ node_modules/
 dist/
 *.js.map
 *.js.gz
-lib/**/*.js.gz
+lib/*.js
+lib/*.js.gz
 
 # Reference project
 reachy-mini-desktop-app/

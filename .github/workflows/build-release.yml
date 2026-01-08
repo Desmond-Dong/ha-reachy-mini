@@ -52,10 +52,23 @@ jobs:
           # Copy Three.js files
           cp node_modules/three/build/three.core.js lib/three.core.js
           cp node_modules/three/examples/jsm/controls/OrbitControls.js lib/OrbitControls.js
+          cp node_modules/three/examples/jsm/loaders/STLLoader.js lib/STLLoader.js
           
-          # Fix OrbitControls.js import to use relative path
+          # Fix import statements to use relative paths
           sed -i.bak "s/from 'three'/from '.\/three.core.js'/g" lib/OrbitControls.js
-          rm -f lib/OrbitControls.js.bak
+          sed -i.bak "s/from 'three'/from '.\/three.core.js'/g" lib/URDFClasses.js
+          sed -i.bak "s/from 'three'/from '.\/three.core.js'/g" lib/URDFDragControls.js
+          sed -i.bak "s/import \* as THREE from 'three'/import * as THREE from '.\/three.core.js'/g" lib/urdf-loader.js
+          sed -i.bak "s|from 'three/examples/jsm/loaders/STLLoader.js'|from './STLLoader.js'|g" lib/urdf-loader.js
+          
+          # Remove ColladaLoader import (not used)
+          sed -i.bak "/import.*ColladaLoader/d" lib/urdf-loader.js
+          
+          # Comment out ColladaLoader usage
+          sed -i.bak "/const loader = new ColladaLoader/c\            // ColladaLoader not available\n            console.warn(\`URDFLoader: Could not load model at \${ path }.\\nColladaLoader not available\`);" lib/urdf-loader.js
+          
+          # Remove backup files
+          rm -f lib/*.bak
           
           echo "✅ Assets and lib copied"
           ls -la lib/
@@ -63,12 +76,20 @@ jobs:
       - name: Create gzip files
         run: |
           echo "🗜️ Creating gzip compressed files..."
+          
+          # Remove existing .gz files first
+          rm -f ha-reachy-mini-card.js.gz
+          rm -f lib/*.gz
+          
+          # Create new gzip files
           gzip -k -9 ha-reachy-mini-card.js
           gzip -k -9 lib/three.core.js
           gzip -k -9 lib/OrbitControls.js
           gzip -k -9 lib/urdf-loader.js
           gzip -k -9 lib/URDFClasses.js
           gzip -k -9 lib/URDFDragControls.js
+          gzip -k -9 lib/STLLoader.js
+          
           echo "✅ Gzip files created"
           ls -la *.gz lib/*.gz
 
