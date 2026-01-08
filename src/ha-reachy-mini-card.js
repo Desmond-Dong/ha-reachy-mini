@@ -376,37 +376,36 @@
     }
 
     async loadThreeJS() {
-      return new Promise(async (resolve, reject) => {
-        const basePath = this.getBasePath();
-        
-        // Check if already loaded
-        if (typeof THREE !== 'undefined' && THREE) {
-          console.log('✅ Three.js already loaded');
-          resolve();
-          return;
-        }
+      const basePath = this.getBasePath();
+      
+      // Check if already loaded
+      if (typeof THREE !== 'undefined' && THREE) {
+        console.log('✅ Three.js already loaded');
+        return;
+      }
 
-        console.log('📦 Loading Three.js from lib/three.core.js...');
+      console.log('📦 Loading Three.js from lib/three.core.js...');
+      
+      try {
+        // Use dynamic import to load Three.js as a module
+        const threeModule = await import(`${basePath}lib/three.core.js`);
         
-        try {
-          // Use dynamic import to load Three.js as a module
-          const threeModule = await import(`${basePath}lib/three.core.js`);
-          
-          // Create global THREE object with all exports
-          window.THREE = threeModule;
-          
-          console.log('✅ Three.js loaded');
-          
-          // Load OrbitControls using dynamic import
-          await import(`${basePath}lib/OrbitControls.js`);
-          
-          console.log('✅ OrbitControls loaded');
-          resolve();
-        } catch (error) {
-          console.error('❌ Failed to load Three.js:', error);
-          reject(new Error('Failed to load Three.js: ' + error.message));
-        }
-      });
+        // Create global THREE object with all exports
+        window.THREE = threeModule;
+        
+        console.log('✅ Three.js loaded');
+        
+        // Load OrbitControls using dynamic import
+        const orbitControlsModule = await import(`${basePath}lib/OrbitControls.js`);
+        
+        // Add OrbitControls to global for linter
+        window.OrbitControls = orbitControlsModule.OrbitControls || orbitControlsModule.default;
+        
+        console.log('✅ OrbitControls loaded');
+      } catch (error) {
+        console.error('❌ Failed to load Three.js:', error);
+        throw new Error('Failed to load Three.js: ' + error.message);
+      }
     }
 
     async connectWebSocket() {
