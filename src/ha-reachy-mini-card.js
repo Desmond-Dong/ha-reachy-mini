@@ -368,11 +368,11 @@
           return;
         }
 
-        console.log('📦 Loading Three.js from lib/three/three.js...');
+        console.log('📦 Loading Three.js from lib/three.js...');
         
         // Load Three.js
         const script1 = document.createElement('script');
-        script1.src = `${basePath}lib/three/three.js`;
+        script1.src = `${basePath}lib/three.js`;
         script1.type = 'module';
         
         script1.onload = () => {
@@ -380,7 +380,7 @@
           
           // Load OrbitControls
           const script2 = document.createElement('script');
-          script2.src = `${basePath}lib/three/OrbitControls.js`;
+          script2.src = `${basePath}lib/OrbitControls.js`;
           script2.type = 'module';
           
           script2.onload = () => {
