@@ -210,7 +210,7 @@ jobs:
             ## 🙏 Credits
 
             Built with reference to [reachy-mini-desktop-app](https://github.com/pollen-robotics/reachy-mini-desktop-app)
-        draft: false
-        prerelease: false
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
