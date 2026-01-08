@@ -201,26 +201,16 @@ jobs:
             - Check daemon is publishing data
             - Try refreshing browser (Ctrl+Shift+R)
 
-            See [README-V2.md](https://github.com/Desmond-Dong/ha-reachy-mini-card/blob/main/README-V2.md) for more details.
+            See [README.md](https://github.com/Desmond-Dong/ha-reachy-mini-card/blob/main/README.md) for more details.
 
             ## 📚 Documentation
 
-            - [README-V2.md](https://github.com/Desmond-Dong/ha-reachy-mini-card/blob/main/README-V2.md) - Full usage guide
-            - [MIGRATION_GUIDE.md](https://github.com/Desmond-Dong/ha-reachy-mini-card/blob/main/MIGRATION_GUIDE.md) - V1 → V2 migration
-            - [TECHNICAL_COMPARISON.md](https://github.com/Desmond-Dong/ha-reachy-mini-card/blob/main/TECHNICAL_COMPARISON.md) - V1 vs V2 technical comparison
+            Full documentation available in the [README.md](https://github.com/Desmond-Dong/ha-reachy-mini-card/blob/main/README.md)
 
             ## 🙏 Credits
 
             Built with reference to [reachy-mini-desktop-app](https://github.com/pollen-robotics/reachy-mini-desktop-app)
-
-            ---
-
-            <div align="center">
-
-              **Made with ❤️ for the Reachy Mini community**
-
-            </div>
-          draft: false
-          prerelease: false
+        draft: false
+        prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
