@@ -1,6 +1,6 @@
 {
   "name": "ha-reachy-mini-card",
-  "version": "2.2.0",
+  "version": "3.0.2",
   "description": "3D visualization card for Reachy Mini robot in Home Assistant - Direct daemon connection",
   "main": "ha-reachy-mini-card.js",
   "repository": {
