@@ -361,29 +361,36 @@
       return new Promise((resolve, reject) => {
         // 检查是否已经加载
         if (window.THREE && window.OrbitControls) {
+          console.log('✅ Three.js already loaded');
           resolve();
           return;
         }
 
+        console.log('📦 Loading Three.js...');
+
         // 加载 Three.js
         const threeScript = document.createElement('script');
         threeScript.src = 'https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.min.js';
+        threeScript.crossOrigin = 'anonymous';
         threeScript.onload = () => {
           console.log('✅ Three.js loaded');
           
           // 加载 OrbitControls
           const orbitScript = document.createElement('script');
           orbitScript.src = 'https://cdn.jsdelivr.net/npm/three@0.181.0/examples/js/controls/OrbitControls.js';
+          orbitScript.crossOrigin = 'anonymous';
           orbitScript.onload = () => {
             console.log('✅ OrbitControls loaded');
             resolve();
           };
           orbitScript.onerror = () => {
+            console.error('❌ Failed to load OrbitControls');
             reject(new Error('Failed to load OrbitControls'));
           };
           document.head.appendChild(orbitScript);
         };
         threeScript.onerror = () => {
+          console.error('❌ Failed to load Three.js');
           reject(new Error('Failed to load Three.js'));
         };
         document.head.appendChild(threeScript);
