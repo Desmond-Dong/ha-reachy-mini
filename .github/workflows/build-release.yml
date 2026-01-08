@@ -82,14 +82,16 @@ jobs:
 
 This card connects directly to your Reachy Mini daemon - no ESPHome required!
 
-### Configuration
+## Configuration Example
 
+```yaml
 type: custom:reachy-mini-3d-card
 daemon_host: localhost
 daemon_port: 3333
 height: 400
+```
 
-### Features
+## Features
 
 - Direct WebSocket connection (20Hz updates)
 - Real-time connection status indicator
