@@ -13,6 +13,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recording/playback of poses
 - Export 3D model as GLTF
 
+## [3.1.1] - 2025-01-08
+
+### Fixed
+- 🐛 修复 Three.js 加载失败问题
+- 📦 添加缺失的 lib/three.core.min.js 文件（380KB）
+- 🔧 修改 loadThreeJS() 方法，按正确顺序加载依赖
+
+### Technical Details
+- three.js 文件依赖于 three.core.min.js
+- 之前只复制了 three.js，导致加载失败
+- ES module 需要按正确顺序加载依赖
+
+### Loading Order
+1. lib/three.core.min.js (核心库)
+2. lib/three.js (主库)
+3. lib/OrbitControls.js (控制器)
+
+### Compression
+- three.core.min.js: 380KB → 100KB (74% 压缩)
+
 ## [3.1.0] - 2025-01-08
 
 ### Added
