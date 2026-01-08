@@ -128,10 +128,10 @@ class ReachyMini3DCard extends HTMLElement {
 
     if (!window.THREE) await load('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js');
     if (!window.THREE.OrbitControls) {
-      await load('https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js');
+      await load('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js');
     }
     if (!window.THREE.STLLoader) {
-      await load('https://unpkg.com/three@0.160.0/examples/js/loaders/STLLoader.js');
+      await load('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/STLLoader.js');
     }
   }
 
