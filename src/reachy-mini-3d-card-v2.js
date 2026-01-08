@@ -382,14 +382,29 @@ window.customCards.push({
 
       async loadRobotModel() {
         try {
-          // 动态导入 urdf-loader
-          const URDFLoader = (await import('/hacsfiles/reachy-mini-3d-card/lib/urdf-loader.js')).default;
+          // 动态获取卡片基础路径
+          const getCardBasePath = () => {
+            const scripts = document.getElementsByTagName('script');
+            const currentScript = scripts[scripts.length - 1];
+            const src = currentScript?.src || '';
+            if (src) {
+              return src.substring(0, src.lastIndexOf('/') + 1);
+            }
+            // 降级方案
+            return '/hacsfiles/reachy-mini-3d-card/';
+          };
 
-          const urdfPath = '/hacsfiles/reachy-mini-3d-card/assets/reachy-mini.urdf';
+          const basePath = getCardBasePath();
+          console.log('Card base path:', basePath);
+
+          // 动态导入 urdf-loader
+          const URDFLoader = (await import(basePath + 'lib/urdf-loader.js')).default;
+
+          const urdfPath = basePath + 'assets/reachy-mini.urdf';
 
           const loader = new URDFLoader();
-          loader.workingPath = '/hacsfiles/reachy-mini-3d-card/assets/';
-          loader.pathPrefix = (path) => '/hacsfiles/reachy-mini-3d-card/assets/' + path;
+          loader.workingPath = basePath + 'assets/';
+          loader.pathPrefix = (path) => basePath + 'assets/' + path;
 
           this.robot = await loader.load(urdfPath);
           this.scene.add(this.robot);
