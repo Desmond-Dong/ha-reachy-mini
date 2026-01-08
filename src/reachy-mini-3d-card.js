@@ -184,20 +184,20 @@
       }
 
       // 场景
-      this._scene = new THREE.Scene();
-      this._scene.background = new THREE.Color(this._config.background_color || '#f5f5f5');
+      this._scene = new this._THREE.Scene();
+      this._scene.background = new this._THREE.Color(this._config.background_color || '#f5f5f5');
 
       // 相机
-      this._camera = new THREE.PerspectiveCamera(
-        50, 
-        container.clientWidth / this._config.height, 
-        0.01, 
+      this._camera = new this._THREE.PerspectiveCamera(
+        50,
+        container.clientWidth / this._config.height,
+        0.01,
         1000
       );
       this._camera.position.set(0.3, 0.3, this._config.camera_distance || 0.5);
 
       // 渲染器
-      this._renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      this._renderer = new this._THREE.WebGLRenderer({ canvas, antialias: true });
       this._renderer.setSize(container.clientWidth, this._config.height);
       this._renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -209,19 +209,19 @@
       this._controls.maxDistance = 1.5;
 
       // 灯光
-      this._scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-      
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      this._scene.add(new this._THREE.AmbientLight(0xffffff, 0.6));
+
+      const directionalLight = new this._THREE.DirectionalLight(0xffffff, 0.8);
       directionalLight.position.set(1, 1, 1);
       this._scene.add(directionalLight);
-      
-      const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+
+      const backLight = new this._THREE.DirectionalLight(0xffffff, 0.3);
       backLight.position.set(-1, -1, -1);
       this._scene.add(backLight);
 
       // 地面网格
       if (this._config.enable_grid !== false) {
-        this._scene.add(new THREE.GridHelper(0.4, 20, 0x888888, 0xcccccc));
+        this._scene.add(new this._THREE.GridHelper(0.4, 20, 0x888888, 0xcccccc));
       }
 
       // FPS 计数器
