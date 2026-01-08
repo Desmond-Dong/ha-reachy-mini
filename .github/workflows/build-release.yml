@@ -38,7 +38,7 @@ jobs:
           echo "Building Reachy Mini 3D Card..."
           npm run build
           echo "Build completed successfully"
-          ls -la reachy-mini-3d-card.js
+          ls -la ha-reachy-mini-card.js
 
       - name: Copy assets
         run: |
