@@ -18,5 +18,6 @@ export default {
     }),
     commonjs(),
     terser()
-  ]
+  ],
+  external: ['three'] // Don't bundle three, it will be loaded from lib/three
 };

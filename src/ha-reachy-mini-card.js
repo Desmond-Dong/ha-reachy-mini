@@ -2,13 +2,6 @@
 // Version: 3.0.0
 // https://github.com/Desmond-Dong/ha-reachy-mini-card
 
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-
-// Expose THREE and OrbitControls to window for use in IIFE
-window.THREE = THREE;
-window.OrbitControls = OrbitControls;
-
 (function () {
   'use strict';
 
@@ -355,12 +348,61 @@ window.OrbitControls = OrbitControls;
 
     async init() {
       try {
+        await this.loadThreeJS();
         await this.connectWebSocket();
         await this.loadRobot();
       } catch (err) {
         console.error('Init error:', err);
         this.showError(err.message);
       }
+    }
+
+    async loadThreeJS() {
+      return new Promise((resolve, reject) => {
+        const basePath = this.getBasePath();
+        
+        // Check if already loaded
+        if (typeof THREE !== 'undefined' && THREE && typeof OrbitControls !== 'undefined') {
+          console.log('✅ Three.js already loaded');
+          resolve();
+          return;
+        }
+
+        console.log('📦 Loading Three.js from lib/three/three.js...');
+        
+        // Load Three.js
+        const script1 = document.createElement('script');
+        script1.src = `${basePath}lib/three/three.js`;
+        script1.type = 'module';
+        
+        script1.onload = () => {
+          console.log('✅ Three.js loaded');
+          
+          // Load OrbitControls
+          const script2 = document.createElement('script');
+          script2.src = `${basePath}lib/three/OrbitControls.js`;
+          script2.type = 'module';
+          
+          script2.onload = () => {
+            console.log('✅ OrbitControls loaded');
+            resolve();
+          };
+          
+          script2.onerror = () => {
+            console.error('❌ Failed to load OrbitControls');
+            reject(new Error('Failed to load OrbitControls'));
+          };
+          
+          document.head.appendChild(script2);
+        };
+        
+        script1.onerror = () => {
+          console.error('❌ Failed to load Three.js');
+          reject(new Error('Failed to load Three.js'));
+        };
+        
+        document.head.appendChild(script1);
+      });
     }
 
     async connectWebSocket() {

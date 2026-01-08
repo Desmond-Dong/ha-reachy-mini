@@ -43,12 +43,20 @@ jobs:
       - name: Copy assets
         run: |
           echo "Copying assets and libraries..."
-          mkdir -p lib
+          mkdir -p lib/three
+          
+          # Copy URDFLoader files
           cp node_modules/urdf-loader/src/URDFClasses.js lib/URDFClasses.js
           cp node_modules/urdf-loader/src/URDFDragControls.js lib/URDFDragControls.js
           cp node_modules/urdf-loader/src/URDFLoader.js lib/urdf-loader.js
+          
+          # Copy Three.js files
+          cp node_modules/three/build/three.module.min.js lib/three/three.js
+          cp node_modules/three/examples/jsm/controls/OrbitControls.js lib/three/OrbitControls.js
+          
           echo "✅ Assets and lib copied"
           ls -la lib/
+          ls -la lib/three/
 
       - name: Create release package
         if: startsWith(github.ref, 'refs/tags/')
