@@ -60,8 +60,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           echo "📦 Creating HACS release package..."
-          # 创建 release 目录，文件直接放在根目录（content_in_root: true）
-          # HACS 要求 zip 文件名与仓库名匹配
           mkdir -p release
 
           # 复制主要文件
@@ -74,45 +72,8 @@ jobs:
           # 复制库文件
           cp -r dist/lib release/
 
-          # 创建 README
-          cat > release/README.md << 'READMEEOF'
-Reachy Mini 3D Card V2
-======================
-
-Quick Start
------------
-
-This card connects directly to your Reachy Mini daemon - no ESPHome required!
-
-Configuration Example
-----------------------
-
-Add this card to your Lovelace dashboard with:
-
-daemon_host: localhost
-daemon_port: 3333
-height: 400
-
-Card type: custom:reachy-mini-3d-card
-
-Features
---------
-
-- Direct WebSocket connection (20Hz updates)
-- Real-time connection status indicator
-- Auto-reconnection on network issues
-- Support for all robot joints and poses
-
-Documentation
--------------
-
-Full documentation: https://github.com/Desmond-Dong/ha-reachy-mini-card
-
-Version
--------
-
-V2.0.0 - Direct Daemon Connection
-READMEEOF
+          # 复制 README
+          cp README-V2.md release/README.md
 
           # 创建 zip 包
           cd release
