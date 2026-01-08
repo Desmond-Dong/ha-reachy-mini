@@ -62,7 +62,7 @@ jobs:
           cp README.md release/
           cp hacs.json release/
 
-          # 创建 zip 包
+          # 创建 zip 包，文件名要与 hacs.json 中的 filename 一致
           cd release
           zip -r ../ha-reachy-mini-card.zip .
           cd ..
