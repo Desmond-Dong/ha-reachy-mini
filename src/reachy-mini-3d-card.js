@@ -7,7 +7,6 @@ window.customCards.push({
   type: 'reachy-mini-3d-card',
   name: 'Reachy Mini 3D Card',
   description: 'Real-time 3D visualization of Reachy Mini robot',
-  preview: true,
   documentationURL: 'https://github.com/Desmond-Dong/ha-reachy-mini-card'
 });
 
