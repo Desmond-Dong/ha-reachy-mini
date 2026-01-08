@@ -35,6 +35,24 @@ cp ha-reachy-mini-card.js "$BUILD_DIR/"
 echo "📦 Copying assets..."
 cp -r assets "$BUILD_DIR/"
 
+# Copy library files
+echo "📦 Copying library files..."
+mkdir -p "$BUILD_DIR/lib"
+cp lib/three.js "$BUILD_DIR/lib/"
+cp lib/OrbitControls.js "$BUILD_DIR/lib/"
+cp lib/urdf-loader.js "$BUILD_DIR/lib/"
+cp lib/URDFClasses.js "$BUILD_DIR/lib/"
+cp lib/URDFDragControls.js "$BUILD_DIR/lib/"
+
+# Create gzip compressed files
+echo "🗜️ Creating gzip compressed files..."
+gzip -k -9 "$BUILD_DIR/ha-reachy-mini-card.js"
+gzip -k -9 "$BUILD_DIR/lib/three.js"
+gzip -k -9 "$BUILD_DIR/lib/OrbitControls.js"
+gzip -k -9 "$BUILD_DIR/lib/urdf-loader.js"
+gzip -k -9 "$BUILD_DIR/lib/URDFClasses.js"
+gzip -k -9 "$BUILD_DIR/lib/URDFDragControls.js"
+
 # Create info file
 cat > "$BUILD_DIR/info.md" << EOF
 # Reachy Mini 3D Card

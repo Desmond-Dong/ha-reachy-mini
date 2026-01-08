@@ -56,6 +56,18 @@ jobs:
           echo "✅ Assets and lib copied"
           ls -la lib/
 
+      - name: Create gzip files
+        run: |
+          echo "🗜️ Creating gzip compressed files..."
+          gzip -k -9 ha-reachy-mini-card.js
+          gzip -k -9 lib/three.js
+          gzip -k -9 lib/OrbitControls.js
+          gzip -k -9 lib/urdf-loader.js
+          gzip -k -9 lib/URDFClasses.js
+          gzip -k -9 lib/URDFDragControls.js
+          echo "✅ Gzip files created"
+          ls -la *.gz lib/*.gz
+
       - name: Create release package
         if: startsWith(github.ref, 'refs/tags/')
         run: |
@@ -64,6 +76,7 @@ jobs:
 
           # 复制所有必需文件
           cp ha-reachy-mini-card.js release/
+          cp ha-reachy-mini-card.js.gz release/
           cp -r assets release/
           cp -r lib release/
           cp README.md release/
@@ -83,6 +96,7 @@ jobs:
           name: ha-reachy-mini-card
           path: |
             ha-reachy-mini-card.js
+            ha-reachy-mini-card.js.gz
             ha-reachy-mini-card.js.map
             assets/
             lib/
@@ -93,7 +107,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add ha-reachy-mini-card.js lib/ hacs.json
+          git add ha-reachy-mini-card.js ha-reachy-mini-card.js.gz lib/ hacs.json
           git diff --staged --quiet || git commit -m "chore: build [skip ci]"
           git push
 
