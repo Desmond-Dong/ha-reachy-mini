@@ -75,37 +75,44 @@ jobs:
           cp -r dist/lib release/
 
           # 创建 README
-          cat > release/README.md << 'EOF'
-# Reachy Mini 3D Card V2
+          cat > release/README.md << 'READMEEOF'
+Reachy Mini 3D Card V2
+======================
 
-## Quick Start
+Quick Start
+-----------
 
 This card connects directly to your Reachy Mini daemon - no ESPHome required!
 
-## Configuration Example
+Configuration Example
+----------------------
 
-```yaml
-type: custom:reachy-mini-3d-card
+Add this card to your Lovelace dashboard with:
+
 daemon_host: localhost
 daemon_port: 3333
 height: 400
-```
 
-## Features
+Card type: custom:reachy-mini-3d-card
+
+Features
+--------
 
 - Direct WebSocket connection (20Hz updates)
 - Real-time connection status indicator
 - Auto-reconnection on network issues
 - Support for all robot joints and poses
 
-### Documentation
+Documentation
+-------------
 
 Full documentation: https://github.com/Desmond-Dong/ha-reachy-mini-card
 
-## Version
+Version
+-------
 
 V2.0.0 - Direct Daemon Connection
-EOF
+READMEEOF
 
           # 创建 zip 包
           cd release
