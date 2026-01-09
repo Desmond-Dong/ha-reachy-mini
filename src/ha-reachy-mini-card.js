@@ -369,7 +369,7 @@
     async init() {
       try {
         await this.loadThreeJS();
-        await this.connectWebSocket();
+        await this.startPolling();
         await this.loadRobot();
       } catch (err) {
         console.error('Init error:', err);
@@ -410,86 +410,49 @@
       }
     }
 
-    async connectWebSocket() {
+    async startPolling() {
       const { daemon_host, daemon_port } = this._config;
-      let wsUrl = `ws://${daemon_host}:${daemon_port}/api/state/ws/full?frequency=20`;
-      wsUrl += '&with_head_joints=true';
-      wsUrl += '&with_antenna_positions=true';
-      if (this._config.enable_passive_joints !== false) {
-        wsUrl += '&with_passive_joints=true';
-      }
-      if (this._config.enable_head_pose !== false) {
-        wsUrl += '&with_head_pose=true';
-        wsUrl += '&use_pose_matrix=true';
-      }
-
-      console.log('🔌 Connecting to WebSocket:', wsUrl);
-      this._ws = new WebSocket(wsUrl);
-
-      this._ws.onopen = () => {
-        console.log('✅ WebSocket connected');
-        this._reconnectAttempts = 0;
-        this.updateStatus('connected', 'Connected');
-      };
-
-      this._ws.onmessage = (event) => {
+      const apiUrl = `http://${daemon_host}:${daemon_port}/api/state/full?with_control_mode=true&with_head_joints=true&with_body_yaw=true&with_antenna_positions=true`;
+      
+      console.log('🔄 Starting polling:', apiUrl);
+      
+      this._pollingInterval = setInterval(async () => {
         try {
-          const data = JSON.parse(event.data);
-          this._processRobotData(data);
+          const response = await fetch(apiUrl);
+          if (response.ok) {
+            const data = await response.json();
+            this._processRobotData(data);
+            this.updateStatus('connected', 'Connected');
+          } else {
+            console.error('❌ API error:', response.status);
+            this.updateStatus('error', `Error: ${response.status}`);
+          }
         } catch (err) {
-          console.error('❌ Parse error:', err);
-        }
-      };
-
-      this._ws.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
-        this.updateStatus('error', 'Error');
-      };
-
-      this._ws.onclose = () => {
-        console.log('🔌 WebSocket closed');
-        this.updateStatus('error', 'Disconnected');
-        
-        if (this._reconnectAttempts < this._maxReconnectAttempts) {
-          this._reconnectAttempts++;
-          const delay = Math.min(
-            this._reconnectDelay * Math.pow(1.5, this._reconnectAttempts - 1),
-            30000
-          );
-          
-          console.log(`🔄 Reconnecting in ${delay}ms (attempt ${this._reconnectAttempts}/${this._maxReconnectAttempts})`);
-          
-          this._reconnectTimeout = setTimeout(() => {
-            this.connectWebSocket();
-          }, delay);
-        } else {
-          console.error('❌ Max reconnection attempts reached');
+          console.error('❌ Polling error:', err);
           this.updateStatus('error', 'Connection Failed');
         }
-      };
+      }, 500); // Poll every 500ms like reference project
     }
 
     _processRobotData(data) {
-      if (data.head_joints && Array.isArray(data.head_joints) && data.head_joints.length === 7) {
+      if (data.head_joints && Array.isArray(data.head_joints) && data.head_joints.length >= 7) {
         this._robotState.headJoints = data.head_joints;
       }
       
-      if (data.head_pose) {
-        const headPoseArray = Array.isArray(data.head_pose) 
-          ? data.head_pose 
-          : data.head_pose.m;
-        if (headPoseArray && headPoseArray.length === 16) {
-          this._robotState.headPose = headPoseArray;
+      if (data.body_yaw !== undefined) {
+        // body_yaw is a single value, not an array
+        if (!this._robotState.headJoints) {
+          this._robotState.headJoints = [];
         }
+        this._robotState.headJoints[0] = data.body_yaw;
       }
       
       if (data.antennas_position && Array.isArray(data.antennas_position) && data.antennas_position.length >= 2) {
         this._robotState.antennas = data.antennas_position;
       }
       
-      if (data.passive_joints && Array.isArray(data.passive_joints) && data.passive_joints.length >= 21) {
-        this._robotState.passiveJoints = data.passive_joints;
-      }
+      // Note: HTTP API doesn't provide head_pose or passive_joints
+      // These would need to be calculated or fetched separately
       
       this._robotState.dataVersion++;
       this._updateRobot();
@@ -699,14 +662,10 @@
       return '/hacsfiles/ha-reachy-mini-card/';
     }
 
-    disconnectedCallback() {
-      if (this._ws) {
-        this._ws.close();
-        this._ws = null;
-      }
-      if (this._reconnectTimeout) {
-        clearTimeout(this._reconnectTimeout);
-        this._reconnectTimeout = null;
+disconnectedCallback() {
+      if (this._pollingInterval) {
+        clearInterval(this._pollingInterval);
+        this._pollingInterval = null;
       }
       if (this._renderer) {
         this._renderer.dispose();
