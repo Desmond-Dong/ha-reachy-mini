@@ -435,24 +435,33 @@
     }
 
     _processRobotData(data) {
+      // head_joints: Array of 7 values [yaw_body, stewart_1, ..., stewart_6]
       if (data.head_joints && Array.isArray(data.head_joints) && data.head_joints.length >= 7) {
         this._robotState.headJoints = data.head_joints;
       }
       
+      // body_yaw: Single value (same as head_joints[0])
       if (data.body_yaw !== undefined) {
-        // body_yaw is a single value, not an array
         if (!this._robotState.headJoints) {
           this._robotState.headJoints = [];
         }
         this._robotState.headJoints[0] = data.body_yaw;
       }
       
+      // head_pose: Object with x, y, z, roll, pitch, yaw
+      if (data.head_pose) {
+        this._robotState.headPose = data.head_pose;
+      }
+      
+      // antennas_position: Array of 2 values [left, right]
       if (data.antennas_position && Array.isArray(data.antennas_position) && data.antennas_position.length >= 2) {
         this._robotState.antennas = data.antennas_position;
       }
       
-      // Note: HTTP API doesn't provide head_pose or passive_joints
-      // These would need to be calculated or fetched separately
+      // passive_joints: Array of 21 values or null
+      if (data.passive_joints && Array.isArray(data.passive_joints) && data.passive_joints.length >= 21) {
+        this._robotState.passiveJoints = data.passive_joints;
+      }
       
       this._robotState.dataVersion++;
       this._updateRobot();
@@ -482,6 +491,13 @@
             this._robot.setJointValue(name, joints[i + 1]);
           }
         });
+      }
+
+      // Apply head pose if enabled (x, y, z, roll, pitch, yaw)
+      if (this._config.enable_head_pose !== false && this._robotState.headPose) {
+        const pose = this._robotState.headPose;
+        // Note: head_pose is for visualization, actual joint movement is controlled by head_joints
+        // The head_joints already include the yaw (yaw_body) and stewart platform positions
       }
 
       // Apply passive joints
