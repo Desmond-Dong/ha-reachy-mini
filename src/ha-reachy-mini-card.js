@@ -382,28 +382,22 @@
       const basePath = this.getBasePath();
       
       // Check if already loaded
-      if (typeof THREE !== 'undefined' && THREE) {
+      if (typeof THREE !== 'undefined' && THREE && THREE.WebGLRenderer) {
         console.log('✅ Three.js already loaded');
         return;
       }
 
-      console.log('📦 Loading Three.js from lib/three.module.js...');
+      console.log('📦 Loading Three.js...');
       
       try {
-        // Use dynamic import to load Three.js as a module
-        const threeModule = await import(`${basePath}lib/three.module.js`);
-        
-        // Create global THREE object with all exports
+        // Load Three.js from local file (flat structure in dist/)
+        const threeModule = await import(`${basePath}three.module.js`);
         window.THREE = threeModule;
-        
         console.log('✅ Three.js loaded');
         
-        // Load OrbitControls using dynamic import
-        const orbitControlsModule = await import(`${basePath}lib/OrbitControls.js`);
-        
-        // Add OrbitControls to global for linter
+        // Load OrbitControls
+        const orbitControlsModule = await import(`${basePath}OrbitControls.js`);
         window.OrbitControls = orbitControlsModule.OrbitControls || orbitControlsModule.default;
-        
         console.log('✅ OrbitControls loaded');
       } catch (error) {
         console.error('❌ Failed to load Three.js:', error);
@@ -510,17 +504,17 @@
     async loadRobot() {
       const basePath = this.getBasePath();
       
-      // 动态加载 URDFLoader 相关模块
-      await import(`${basePath}lib/URDFClasses.js`);
-      await import(`${basePath}lib/URDFDragControls.js`);
+      // 动态加载 URDFLoader 相关模块 (flat structure)
+      await import(`${basePath}URDFClasses.js`);
+      await import(`${basePath}URDFDragControls.js`);
       
-      const URDFLoaderModule = await import(`${basePath}lib/urdf-loader.js`);
+      const URDFLoaderModule = await import(`${basePath}urdf-loader.js`);
       const URDFLoader = URDFLoaderModule.default;
       
       const loader = new URDFLoader();
-      loader.workingPath = `${basePath}assets/`;
+      loader.workingPath = basePath;  // STL files are in same directory
       
-      this._robot = await loader.load(`${basePath}assets/reachy-mini.urdf`);
+      this._robot = await loader.load(`${basePath}reachy-mini.urdf`);
       this._scene.add(this._robot);
 
       // Initialize all joints to zero

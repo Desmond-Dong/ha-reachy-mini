@@ -5,8 +5,6 @@ on:
     branches: [ main ]
     tags:
       - 'v*'
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -30,42 +28,28 @@ jobs:
         run: npm install
 
       - name: Build bundle
-        run: |
-          echo "Building Reachy Mini 3D Card..."
-          npm run build
-          echo "Build completed successfully"
+        run: npm run build
 
-      - name: Create dist directory structure
+      - name: Create dist directory (flat structure for HACS)
         run: |
-          echo "📦 Creating dist directory for HACS..."
-          
-          # Remove old dist and recreate
+          echo "📦 Creating flat dist directory for HACS..."
           rm -rf dist
-          mkdir -p dist/lib
-          mkdir -p dist/assets/meshes
+          mkdir -p dist
           
           # Copy main JS file
           cp ha-reachy-mini-card.js dist/
-          cp ha-reachy-mini-card.js.map dist/ 2>/dev/null || true
           
-          # Copy URDF and meshes
-          cp assets/reachy-mini.urdf dist/assets/
-          cp assets/meshes/*.stl dist/assets/meshes/
+          # Copy lib files (flat)
+          cp lib/*.js dist/
           
-          # Copy lib files from local lib/ directory (already has correct imports)
-          cp lib/*.js dist/lib/
+          # Copy STL files (flat)
+          cp assets/meshes/*.stl dist/
           
-          echo "✅ dist directory created"
-          echo "📁 Directory structure:"
-          find dist -type f
-          echo "Total files: $(find dist -type f | wc -l)"
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ha-reachy-mini-card
-          path: dist/
-          retention-days: 30
+          # Copy and modify URDF (remove meshes/ prefix)
+          sed 's|filename="meshes/|filename="|g' assets/reachy-mini.urdf > dist/reachy-mini.urdf
+          
+          echo "✅ dist directory created with $(ls dist | wc -l) files"
+          ls dist/
 
       - name: Commit dist to repository
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -82,15 +66,12 @@ jobs:
         with:
           body: |
             # Reachy Mini 3D Card ${{ github.ref_name }}
-
+            
             ## Installation via HACS
-
-            1. Open HACS in Home Assistant
-            2. Go to Frontend → Custom repositories
-            3. Add: `https://github.com/Desmond-Dong/ha-reachy-mini-card`
-            4. Category: Plugin
-            5. Search for "Reachy Mini 3D Card" and click Download
-            6. Refresh browser (Ctrl+Shift+R)
+            1. Open HACS → Frontend → Custom repositories
+            2. Add: `https://github.com/Desmond-Dong/ha-reachy-mini-card`
+            3. Category: Plugin
+            4. Download and refresh browser
           draft: false
           prerelease: false
         env:
