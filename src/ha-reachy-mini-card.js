@@ -512,7 +512,7 @@
       const URDFLoader = URDFLoaderModule.default;
       
       const loader = new URDFLoader();
-      loader.workingPath = basePath;  // STL files are in same directory
+      loader.workingPath = basePath;  // STL files are in meshes/ subdirectory (URDF references meshes/xxx.stl)
       
       this._robot = await loader.load(`${basePath}reachy-mini.urdf`);
       this._scene.add(this._robot);
@@ -661,7 +661,8 @@
     }
 
     getBasePath() {
-      return '/hacsfiles/ha-reachy-mini-card/';
+      // Integration static path (registered by __init__.py)
+      return '/reachy_mini_3d_static/';
     }
 
 disconnectedCallback() {

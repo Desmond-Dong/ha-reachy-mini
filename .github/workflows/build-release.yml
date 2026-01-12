@@ -30,34 +30,20 @@ jobs:
       - name: Build bundle
         run: npm run build
 
-      - name: Create dist directory (flat structure for HACS)
+      - name: Update version in manifest
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
-          echo "📦 Creating flat dist directory for HACS..."
-          rm -rf dist
-          mkdir -p dist
-          
-          # Copy main JS file
-          cp ha-reachy-mini-card.js dist/
-          
-          # Copy lib files (flat)
-          cp lib/*.js dist/
-          
-          # Copy STL files (flat)
-          cp assets/meshes/*.stl dist/
-          
-          # Copy and modify URDF (remove meshes/ prefix)
-          sed 's|filename="meshes/|filename="|g' assets/reachy-mini.urdf > dist/reachy-mini.urdf
-          
-          echo "✅ dist directory created with $(ls dist | wc -l) files"
-          ls dist/
+          VERSION=${GITHUB_REF#refs/tags/v}
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" custom_components/reachy_mini_3d/manifest.json
+          echo "Updated version to $VERSION"
 
-      - name: Commit dist to repository
+      - name: Commit built JS file
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add dist/
-          git diff --staged --quiet || git commit -m "chore: build dist [skip ci]"
+          git add custom_components/reachy_mini_3d/www/ha-reachy-mini-card.js*
+          git diff --staged --quiet || git commit -m "chore: build JS bundle [skip ci]"
           git push
 
       - name: Create Release
@@ -68,10 +54,19 @@ jobs:
             # Reachy Mini 3D Card ${{ github.ref_name }}
             
             ## Installation via HACS
-            1. Open HACS → Frontend → Custom repositories
+            1. Open HACS → Integrations → Custom repositories
             2. Add: `https://github.com/Desmond-Dong/ha-reachy-mini-card`
-            3. Category: Plugin
-            4. Download and refresh browser
+            3. Category: **Integration**
+            4. Download and restart Home Assistant
+            5. Go to Settings → Devices & Services → Add Integration → "Reachy Mini 3D Card"
+            
+            ## Usage
+            After installation, add the card to your dashboard:
+            ```yaml
+            type: custom:ha-reachy-mini-card
+            daemon_host: your-reachy-mini-ip
+            daemon_port: 8000
+            ```
           draft: false
           prerelease: false
         env:

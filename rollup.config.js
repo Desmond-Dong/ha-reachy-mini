@@ -5,11 +5,11 @@ import terser from '@rollup/plugin-terser';
 export default {
   input: 'src/ha-reachy-mini-card.js',
   output: {
-    file: 'ha-reachy-mini-card.js',
+    file: 'custom_components/reachy_mini_3d/www/ha-reachy-mini-card.js',
     format: 'iife',
     name: 'HaReachyMiniCard',
     sourcemap: true,
-    banner: '// Reachy Mini 3D Card - Direct Daemon Connection\n// Version: 3.0.0\n// https://github.com/Desmond-Dong/ha-reachy-mini-card\n'
+    banner: '// Reachy Mini 3D Card - Home Assistant Integration\n// https://github.com/Desmond-Dong/ha-reachy-mini-card\n'
   },
   plugins: [
     resolve({
@@ -19,5 +19,5 @@ export default {
     commonjs(),
     terser()
   ],
-  external: ['three'] // Don't bundle three, it will be loaded from lib/three
+  external: ['three']
 };
