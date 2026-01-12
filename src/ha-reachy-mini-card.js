@@ -1,5 +1,5 @@
 // Reachy Mini 3D Card - Direct Daemon Connection
-// Version: 3.0.0
+// Version: 3.1.0
 // https://github.com/Desmond-Dong/ha-reachy-mini-card
 
 /* global OrbitControls */
@@ -369,8 +369,9 @@
     async init() {
       try {
         await this.loadThreeJS();
-        await this.startPolling();
+        this._setupScene();
         await this.loadRobot();
+        this.startPolling();
       } catch (err) {
         console.error('Init error:', err);
         this.showError(err.message);
@@ -410,9 +411,9 @@
       }
     }
 
-    async startPolling() {
+    startPolling() {
       const { daemon_host, daemon_port } = this._config;
-      const apiUrl = `http://${daemon_host}:${daemon_port}/api/state/full?with_control_mode=true&with_head_joints=true&with_body_yaw=true&with_antenna_positions=true`;
+      const apiUrl = `http://${daemon_host}:${daemon_port}/api/state/full?with_control_mode=true&with_head_joints=true&with_body_yaw=true&with_antenna_positions=true&with_passive_joints=true`;
       
       console.log('🔄 Starting polling:', apiUrl);
       
@@ -431,7 +432,7 @@
           console.error('❌ Polling error:', err);
           this.updateStatus('error', 'Connection Failed');
         }
-      }, 500); // Poll every 500ms like reference project
+      }, 50); // Poll every 50ms (20Hz) like reference project
     }
 
     _processRobotData(data) {
@@ -469,16 +470,6 @@
 
     _updateRobot() {
       if (!this._robot) return;
-      
-      this._frameCount++;
-      if (this._frameCount % 3 !== 0) {
-        return; // Throttle to ~20Hz
-      }
-      
-      if (this._robotState.dataVersion === this._lastDataVersion) {
-        return; // No new data
-      }
-      this._lastDataVersion = this._robotState.dataVersion;
 
       // Apply head joints
       if (this._robotState.headJoints) {
@@ -491,13 +482,6 @@
             this._robot.setJointValue(name, joints[i + 1]);
           }
         });
-      }
-
-      // Apply head pose if enabled (x, y, z, roll, pitch, yaw)
-      if (this._config.enable_head_pose !== false && this._robotState.headPose) {
-        const pose = this._robotState.headPose;
-        // Note: head_pose is for visualization, actual joint movement is controlled by head_joints
-        // The head_joints already include the yaw (yaw_body) and stewart platform positions
       }
 
       // Apply passive joints
@@ -547,7 +531,7 @@
       if (loading) loading.style.display = 'none';
 
       // Start animation loop
-      this._startAnimation();
+      this._startAnimationLoop();
     }
 
     _initializeJoints() {
@@ -580,9 +564,11 @@
       });
     }
 
-    _startAnimation() {
+    _setupScene() {
       const container = this.shadowRoot.querySelector('#container');
       const canvas = document.createElement('canvas');
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
       container.appendChild(canvas);
       
       // Scene
@@ -609,6 +595,7 @@
       this._controls.dampingFactor = 0.05;
       this._controls.minDistance = 0.2;
       this._controls.maxDistance = 1.5;
+      this._controls.target.set(0, 0.15, 0);
 
       // Lights
       this._scene.add(new THREE.AmbientLight(0xffffff, 0.6));
@@ -632,10 +619,15 @@
         lastTime: performance.now(),
         fps: 0
       };
+    }
 
+    _startAnimationLoop() {
       // Animation loop
       const animate = () => {
-        requestAnimationFrame(animate);
+        this._animationId = requestAnimationFrame(animate);
+        
+        // Update robot state
+        this._updateRobot();
         
         // FPS calculation
         this._fpsCounter.frameCount++;
@@ -679,6 +671,10 @@
     }
 
 disconnectedCallback() {
+      if (this._animationId) {
+        cancelAnimationFrame(this._animationId);
+        this._animationId = null;
+      }
       if (this._pollingInterval) {
         clearInterval(this._pollingInterval);
         this._pollingInterval = null;
