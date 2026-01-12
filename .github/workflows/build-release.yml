@@ -29,10 +29,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run linter
-        run: npm run lint --if-present
-        continue-on-error: true
-
       - name: Build bundle
         run: |
           echo "Building Reachy Mini 3D Card..."
@@ -43,7 +39,8 @@ jobs:
         run: |
           echo "📦 Creating dist directory for HACS..."
           
-          # Create dist directory
+          # Remove old dist and recreate
+          rm -rf dist
           mkdir -p dist/lib
           mkdir -p dist/assets/meshes
           
@@ -55,49 +52,13 @@ jobs:
           cp assets/reachy-mini.urdf dist/assets/
           cp assets/meshes/*.stl dist/assets/meshes/
           
-          # Copy URDFLoader files from node_modules
-          cp node_modules/urdf-loader/src/URDFClasses.js dist/lib/URDFClasses.js
-          cp node_modules/urdf-loader/src/URDFDragControls.js dist/lib/URDFDragControls.js
-          cp node_modules/urdf-loader/src/URDFLoader.js dist/lib/urdf-loader.js
-          
-          # Copy Three.js files
-          cp node_modules/three/build/three.module.js dist/lib/three.module.js
-          cp node_modules/three/examples/jsm/controls/OrbitControls.js dist/lib/OrbitControls.js
-          cp node_modules/three/examples/jsm/loaders/STLLoader.js dist/lib/STLLoader.js
-          
-          # Fix import statements to use relative paths
-          sed -i "s/from 'three'/from '.\/three.module.js'/g" dist/lib/OrbitControls.js
-          sed -i "s/from 'three'/from '.\/three.module.js'/g" dist/lib/URDFClasses.js
-          sed -i "s/from 'three'/from '.\/three.module.js'/g" dist/lib/URDFDragControls.js
-          sed -i "s/from 'three'/from '.\/three.module.js'/g" dist/lib/STLLoader.js
-          sed -i "s/from 'three'/from '.\/three.module.js'/g" dist/lib/urdf-loader.js
-          sed -i "s|from 'three/examples/jsm/loaders/STLLoader.js'|from './STLLoader.js'|g" dist/lib/urdf-loader.js
-          
-          # Remove ColladaLoader import (not used)
-          sed -i "/import.*ColladaLoader/d" dist/lib/urdf-loader.js
+          # Copy lib files from local lib/ directory (already has correct imports)
+          cp lib/*.js dist/lib/
           
           echo "✅ dist directory created"
           echo "📁 Directory structure:"
-          find dist -type f | head -20
-          echo "..."
+          find dist -type f
           echo "Total files: $(find dist -type f | wc -l)"
-
-      - name: Create gzip files
-        run: |
-          echo "🗜️ Creating gzip compressed files..."
-          
-          # Remove existing gz files first
-          rm -f dist/*.gz dist/lib/*.gz
-          
-          gzip -k -9 dist/ha-reachy-mini-card.js
-          gzip -k -9 dist/lib/three.module.js
-          gzip -k -9 dist/lib/OrbitControls.js
-          gzip -k -9 dist/lib/urdf-loader.js
-          gzip -k -9 dist/lib/URDFClasses.js
-          gzip -k -9 dist/lib/URDFDragControls.js
-          gzip -k -9 dist/lib/STLLoader.js
-          
-          echo "✅ Gzip files created"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -111,7 +72,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add dist/ hacs.json
+          git add dist/
           git diff --staged --quiet || git commit -m "chore: build dist [skip ci]"
           git push
 
@@ -119,31 +80,17 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            dist/ha-reachy-mini-card.js
-            dist/ha-reachy-mini-card.js.map
           body: |
-            # 🎉 Reachy Mini 3D Card ${{ github.ref_name }}
+            # Reachy Mini 3D Card ${{ github.ref_name }}
 
-            ## 📦 Installation via HACS
+            ## Installation via HACS
 
             1. Open HACS in Home Assistant
-            2. Go to **Frontend** → **Custom repositories**
+            2. Go to Frontend → Custom repositories
             3. Add: `https://github.com/Desmond-Dong/ha-reachy-mini-card`
-            4. Category: **Plugin**
-            5. Search for "Reachy Mini 3D Card" and click **Download**
+            4. Category: Plugin
+            5. Search for "Reachy Mini 3D Card" and click Download
             6. Refresh browser (Ctrl+Shift+R)
-
-            ## ⚙️ Configuration
-
-            ```yaml
-            type: custom:ha-reachy-mini-card
-            daemon_host: localhost
-            daemon_port: 8000
-            height: 400
-            ```
-
-            See [README.md](https://github.com/Desmond-Dong/ha-reachy-mini-card/blob/main/README.md) for full documentation.
           draft: false
           prerelease: false
         env:
