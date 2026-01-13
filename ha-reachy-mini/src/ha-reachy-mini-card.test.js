@@ -14,13 +14,14 @@ describe('Property 1: Configuration Defaults', () => {
   });
 });
 
-describe('Property 2: WebSocket URL', () => {
-  it('should construct URL correctly', () => {
+describe('Property 2: API URL', () => {
+  it('should construct HTTP URL correctly', () => {
     fc.assert(fc.property(fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9]{0,10}$/), fc.integer({ min: 1, max: 65535 }), (host, port) => {
       const url = buildWebSocketUrl(host, port);
-      expect(url.startsWith('ws://')).toBe(true);
+      expect(url.startsWith('http://')).toBe(true);
       expect(url).toContain(host);
       expect(url).toContain(':' + port);
+      expect(url).toContain('/api/state/full');
     }), { numRuns: 100 });
   });
 });
