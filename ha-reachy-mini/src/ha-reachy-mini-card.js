@@ -1590,17 +1590,73 @@ class ReachyMini3DCard extends HTMLElement {
   }
 
   /**
-   * Connect to the Reachy Mini daemon via HTTP polling
-   * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.7
+   * Build WebSocket URL for robot state streaming
+   * @param {string} host - Daemon host
+   * @param {number} port - Daemon port
+   * @returns {string} - WebSocket URL
    */
-  _connectWebSocket() {
-    // Start HTTP polling instead of WebSocket
-    this._startPolling();
+  _buildWebSocketUrl(host, port) {
+    const params = new URLSearchParams({
+      frequency: '20',
+      with_head_pose: 'true',
+      use_pose_matrix: 'true',
+      with_head_joints: 'true',
+      with_antenna_positions: 'true',
+      with_passive_joints: 'true'
+    });
+    return `ws://${host}:${port}/api/state/ws/full?${params.toString()}`;
   }
 
   /**
-   * Start HTTP polling for robot state
-   * Polls at 20Hz (50ms interval) to match the original WebSocket frequency
+   * Connect to the Reachy Mini daemon via WebSocket
+   * Falls back to HTTP polling if WebSocket fails
+   * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.7
+   */
+  _connectWebSocket() {
+    // Don't connect if already connected
+    if (this._ws && this._ws.readyState === WebSocket.OPEN) {
+      return;
+    }
+    
+    const host = this._config?.daemon_host ?? DEFAULT_CONFIG.daemon_host;
+    const port = this._config?.daemon_port ?? DEFAULT_CONFIG.daemon_port;
+    const wsUrl = this._buildWebSocketUrl(host, port);
+    
+    console.info(`[ReachyMini3DCard] Connecting to WebSocket: ${wsUrl}`);
+    
+    try {
+      this._ws = new WebSocket(wsUrl);
+      
+      this._ws.onopen = () => {
+        console.info('[ReachyMini3DCard] WebSocket connected');
+        this._reconnectAttempts = 0;
+        this._setConnectionState('connected');
+        // Stop HTTP polling if it was running as fallback
+        this._stopPolling();
+      };
+      
+      this._ws.onmessage = (event) => {
+        this._handleWebSocketMessage(event);
+      };
+      
+      this._ws.onerror = (error) => {
+        console.warn('[ReachyMini3DCard] WebSocket error:', error);
+      };
+      
+      this._ws.onclose = () => {
+        this._handleWebSocketClose();
+      };
+      
+    } catch (error) {
+      console.error('[ReachyMini3DCard] Failed to create WebSocket:', error);
+      // Fall back to HTTP polling
+      this._startPolling();
+    }
+  }
+
+  /**
+   * Start HTTP polling for robot state (fallback when WebSocket fails)
+   * Polls at 20Hz (50ms interval) to match the WebSocket frequency
    */
   _startPolling() {
     // Don't start if already polling
@@ -1612,7 +1668,7 @@ class ReachyMini3DCard extends HTMLElement {
     const port = this._config?.daemon_port ?? DEFAULT_CONFIG.daemon_port;
     const url = buildApiUrl(host, port);
     
-    console.info(`[ReachyMini3DCard] Starting HTTP polling: ${url}`);
+    console.info(`[ReachyMini3DCard] Starting HTTP polling (fallback): ${url}`);
     
     // Poll immediately
     this._pollRobotState(url);
@@ -1648,8 +1704,8 @@ class ReachyMini3DCard extends HTMLElement {
         this._setConnectionState('connected');
       }
       
-      // Parse and apply robot state
-      this._handlePollingResponse(data);
+      // Parse and apply robot state (HTTP format)
+      this._handleHttpResponse(data);
       
     } catch (error) {
       // Handle connection error
@@ -1662,9 +1718,10 @@ class ReachyMini3DCard extends HTMLElement {
 
   /**
    * Handle HTTP polling response
-   * @param {Object} data - Response data from API
+   * HTTP API returns head_pose as {x, y, z, roll, pitch, yaw}
+   * @param {Object} data - Response data from HTTP API
    */
-  _handlePollingResponse(data) {
+  _handleHttpResponse(data) {
     // Parse head_joints
     if (data.head_joints && Array.isArray(data.head_joints) && data.head_joints.length === 7) {
       this._robotState.headJoints = data.head_joints;
@@ -1677,14 +1734,13 @@ class ReachyMini3DCard extends HTMLElement {
     
     // Parse body_yaw (if available separately)
     if (data.body_yaw !== undefined) {
-      // body_yaw is also in head_joints[0], but keep for reference
       this._robotState.bodyYaw = data.body_yaw;
     }
     
     // Parse head_pose and calculate passive joints
-    // API returns head_pose as {x, y, z, roll, pitch, yaw}
-    // We need to convert to 4x4 matrix and calculate passive joints
-    if (data.head_pose && typeof data.head_pose === 'object') {
+    // HTTP API returns head_pose as {x, y, z, roll, pitch, yaw}
+    // We need to convert to 4x4 matrix and calculate passive joints locally
+    if (data.head_pose && typeof data.head_pose === 'object' && !Array.isArray(data.head_pose)) {
       // Convert head_pose to 4x4 matrix
       const headPoseMatrix = headPoseToMatrix(data.head_pose);
       this._robotState.headPose = headPoseMatrix;
@@ -1737,23 +1793,47 @@ class ReachyMini3DCard extends HTMLElement {
   _handleWebSocketMessage(event) {
     try {
       const data = JSON.parse(event.data);
-      const parsedState = parseRobotStateMessage(data);
       
-      // Update robot state
-      if (parsedState.headJoints) {
-        this._robotState.headJoints = parsedState.headJoints;
-      }
-      if (parsedState.antennas) {
-        this._robotState.antennas = parsedState.antennas;
-      }
-      if (parsedState.passiveJoints) {
-        this._robotState.passiveJoints = parsedState.passiveJoints;
-      }
-      if (parsedState.headPose) {
-        this._robotState.headPose = parsedState.headPose;
+      // Parse head_joints
+      if (data.head_joints && Array.isArray(data.head_joints) && data.head_joints.length === 7) {
+        this._robotState.headJoints = data.head_joints;
       }
       
-      // Apply state to robot model (will be implemented in task 8)
+      // Parse antennas_position
+      if (data.antennas_position && Array.isArray(data.antennas_position)) {
+        this._robotState.antennas = data.antennas_position;
+      }
+      
+      // Parse head_pose - WebSocket returns {m: [...]} format (4x4 matrix)
+      let headPoseMatrix = null;
+      if (data.head_pose) {
+        if (data.head_pose.m && Array.isArray(data.head_pose.m) && data.head_pose.m.length === 16) {
+          // WebSocket format: {m: [16 floats]}
+          headPoseMatrix = data.head_pose.m;
+        } else if (Array.isArray(data.head_pose) && data.head_pose.length === 16) {
+          // Direct array format
+          headPoseMatrix = data.head_pose;
+        }
+        
+        if (headPoseMatrix) {
+          this._robotState.headPose = headPoseMatrix;
+        }
+      }
+      
+      // Parse passive_joints - may be null from server, calculate locally if needed
+      if (data.passive_joints && Array.isArray(data.passive_joints) && data.passive_joints.length >= 21) {
+        // Server provided passive joints
+        this._robotState.passiveJoints = data.passive_joints;
+      } else if (this._robotState.headJoints && headPoseMatrix) {
+        // Calculate passive joints locally
+        const enablePassiveJoints = this._config?.enable_passive_joints ?? DEFAULT_CONFIG.enable_passive_joints;
+        if (enablePassiveJoints) {
+          const passiveJoints = calculatePassiveJoints(this._robotState.headJoints, headPoseMatrix);
+          this._robotState.passiveJoints = passiveJoints;
+        }
+      }
+      
+      // Apply state to robot model
       this._applyRobotState();
       
     } catch (error) {
@@ -1763,26 +1843,28 @@ class ReachyMini3DCard extends HTMLElement {
 
   /**
    * Handle WebSocket close event with auto-reconnection
+   * Falls back to HTTP polling after max WebSocket retries
    * Requirements: 2.5, 2.7
    */
   _handleWebSocketClose() {
     this._ws = null;
     
-    // Check if we should attempt reconnection
+    // Check if we should attempt WebSocket reconnection
     if (this._reconnectAttempts < WEBSOCKET_CONFIG.maxReconnectAttempts) {
       this._setConnectionState('reconnecting');
       
       const delay = calculateReconnectDelay(this._reconnectAttempts);
-      console.info(`[ReachyMini3DCard] Reconnecting in ${delay}ms (attempt ${this._reconnectAttempts + 1}/${WEBSOCKET_CONFIG.maxReconnectAttempts})`);
+      console.info(`[ReachyMini3DCard] WebSocket reconnecting in ${delay}ms (attempt ${this._reconnectAttempts + 1}/${WEBSOCKET_CONFIG.maxReconnectAttempts})`);
       
       this._reconnectTimeout = setTimeout(() => {
         this._reconnectAttempts++;
         this._connectWebSocket();
       }, delay);
     } else {
-      // Max retries exceeded - show offline status (Requirement 2.7)
-      console.warn('[ReachyMini3DCard] Max reconnection attempts reached, giving up');
-      this._setConnectionState('disconnected');
+      // Max WebSocket retries exceeded - fall back to HTTP polling
+      console.warn('[ReachyMini3DCard] Max WebSocket reconnection attempts reached, falling back to HTTP polling');
+      this._reconnectAttempts = 0; // Reset for HTTP polling
+      this._startPolling();
     }
   }
 
