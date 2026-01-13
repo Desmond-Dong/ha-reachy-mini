@@ -36,13 +36,16 @@ jobs:
       - name: Build bundle
         run: npm run build
 
+      - name: Copy built file to root dist
+        run: cp dist/ha-reachy-mini-card.js ../dist/
+
       - name: Commit built JS file
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           cd ..
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add ha-reachy-mini/dist/ha-reachy-mini-card.js
+          git add dist/ha-reachy-mini-card.js
           git diff --staged --quiet || git commit -m "chore: build JS bundle [skip ci]"
           git push
 
@@ -91,6 +94,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ha-reachy-mini/dist/ha-reachy-mini-card.js
+            dist/ha-reachy-mini-card.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

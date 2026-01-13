@@ -5,11 +5,13 @@ on:
     branches: [main]
     paths:
       - 'ha-reachy-mini/**'
+      - 'dist/**'
       - 'hacs.json'
   pull_request:
     branches: [main]
     paths:
       - 'ha-reachy-mini/**'
+      - 'dist/**'
       - 'hacs.json'
   workflow_dispatch:
 
