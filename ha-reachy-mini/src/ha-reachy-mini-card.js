@@ -54,12 +54,12 @@ const ROBOT_JOINTS = {
  * Asset paths configuration
  */
 const ASSET_PATHS = {
-  // Base path for assets (relative to the card's location)
-  BASE: '/local/ha-reachy-mini/assets',
+  // Base path for assets (HACS installation path)
+  BASE: '/hacsfiles/ha-reachy-mini/dist/assets',
   // URDF file path
-  URDF: '/local/ha-reachy-mini/assets/robot-3d/reachy-mini.urdf',
+  URDF: '/hacsfiles/ha-reachy-mini/dist/assets/robot-3d/reachy-mini.urdf',
   // Meshes directory
-  MESHES: '/local/ha-reachy-mini/assets/robot-3d/meshes'
+  MESHES: '/hacsfiles/ha-reachy-mini/dist/assets/robot-3d/meshes'
 };
 
 /**
