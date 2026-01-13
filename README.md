@@ -24,7 +24,7 @@ A custom Lovelace card that provides real-time 3D visualization of the Reachy Mi
 
 ## Installation
 
-### HACS (Recommended)
+### HACS 
 
 1. Open HACS in your Home Assistant instance
 2. Go to "Frontend" section
@@ -35,7 +35,7 @@ A custom Lovelace card that provides real-time 3D visualization of the Reachy Mi
 7. Restart Home Assistant
 8. Clear your browser cache
 
-### Manual Installation
+### Manual Installation (Recommended)
 
 1. Download the `dist/` folder from this repository
 2. Copy to `config/www/community/ha-reachy-mini/`:
@@ -117,6 +117,19 @@ ws://{host}:{port}/api/state/ws/full?frequency=20&with_head_pose=true&use_pose_m
 ```
 http://{host}:{port}/api/state/full?with_control_mode=true&with_head_joints=true&with_body_yaw=true&with_antenna_positions=true
 ```
+
+## Known Issues
+
+### HACS Installation
+Due to limitations with HACS plugin structure, automatic installation may have issues:
+
+1. **Resource path incorrect**: HACS may add the resource as `/hacsfiles/ha-reachy-mini/ha-reachy-mini-card.js` instead of `/hacsfiles/ha-reachy-mini/dist/ha-reachy-mini-card.js`
+   - **Fix**: Manually edit the resource URL in Lovelace configuration to include `/dist/`
+
+2. **Assets not downloaded**: HACS may only download the JS file without the `dist/assets/` folder containing URDF and mesh files
+   - **Fix**: Manually download the `dist/` folder from GitHub and copy to `config/www/community/ha-reachy-mini/`
+
+We are working on improving HACS compatibility.
 
 ## Troubleshooting
 
